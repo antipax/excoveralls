@@ -1,3 +1,19 @@
+0.7.0
+------
+#### Changes
+* Do not force mix env when running tests (#101).
+
+0.6.5
+------
+#### Changes
+* Fix for error when using hackney 1.8.4.
+  - UndefinedFunctionError after updating hackney and excoveralls the to latest version (#99).
+
+0.6.4
+------
+#### Changes
+* Upgrade dependencies (#98).
+
 0.6.3
 ------
 #### Changes
