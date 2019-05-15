@@ -12,7 +12,7 @@ defmodule ExCoveralls.Cover do
     :cover.start()
 
     Enum.each(compile_paths, fn compile_path ->
-      :cover.compile_beam_directory(compile_path |> to_char_list)
+      :cover.compile_beam_directory(compile_path |> to_charlist)
     end)
   end
 
@@ -54,12 +54,6 @@ defmodule ExCoveralls.Cover do
   @doc "Wrapper for :cover.analyse"
   def analyze(module) do
     :cover.analyse(module, :calls, :line)
-  end
-
-  if Version.compare(System.version(), "1.3.0") == :lt do
-    defp string_to_charlist(string), do: String.to_char_list(string)
-  else
-    defp string_to_charlist(string), do: String.to_charlist(string)
   end
 
   defp log_missing_source(module) do
