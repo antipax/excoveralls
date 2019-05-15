@@ -1,3 +1,123 @@
+0.11.1
+------
+#### Enhancements
+- Ignore lines between coveralls-ignore-start and coveralls-ignore-stop comments (#183).
+
+0.11.0
+------
+#### Enhancements
+- Add command line option for output_dir (#126, #182).
+- Display path to HTML report after generation (#178).
+#### Changes
+- Add missing `name` switch, also fixed `committer` switch (#180).
+- Fix UnicodeConversionError and faster count_line (#176).
+- Fix spelling on doc for ExCoveralls.Stats.report/1 (#174).
+- Relax hackney dependency (#172).
+
+0.10.6
+------
+#### Changes
+- Do not fail due to timeout from poster (#173).
+  - Fixes: Don't fail the build when uploading the report times out (#112).
+
+0.10.5
+------
+#### Changes
+- Replace deprecated System.cwd/0 calls with File.cwd/0 (#170).
+
+0.10.4
+------
+#### Enhancements
+- Apply GZIP the JSON for coveralls and loosen the timeout (#163).
+
+0.10.3
+------
+#### Changes
+- Make sure analyze_sub_apps gets called (#160, #164).
+
+0.10.2
+------
+#### Changes
+- Argument passing for post task (#158).
+    - Fixes coveralls.post doesn't recognize mix test options (#156).
+- Color for case with 0 relevant lines (#159).
+
+0.10.1
+------
+#### Enhancements
+- Add support for drone CI (#154).
+- Parallel support for separate CircleCI Workflow jobs (#155).
+
+0.10.0
+------
+#### Enhancements
+- Custom config file path, and ability to silence output (#153).
+#### Changes
+- use ~> to pin on minors & test more recent Elixirs (#152).
+
+0.9.2
+------
+#### Changes
+- Add meta tag for utf-8 charset to coverage.html (#144).
+- Fix warnings for elixir v1.7
+    - Pass switches to OptionParser.parse opts (#150).
+
+0.9.1
+------
+#### Changes
+- Fix umbrella stats and make source consistent (#141).
+
+0.9.0
+------
+#### Enhancements
+- Replace JSX with Jason (#137).
+
+#### Changes
+- Make the minimum elixir version v1.3.
+
+0.8.2
+------
+#### Changes
+- Ensure missing source from dirty build dir is not reported (#134).
+
+0.8.1
+------
+#### Changes
+- Bump meck to 0.8.9 (#129).
+    - Fix for Got error while mocking a method using espec (#107).
+
+0.8.0
+------
+#### Enhancements
+* Add --sort option to local runner (#125).
+* Merge dot file settings and project settings (#122).
+
+0.7.5
+------
+#### Enhancements
+* Support for ~/.excoversalls/coveralls.json (#120).
+
+0.7.4
+------
+#### Changes
+* Fix for Coveralls Badge only Displays Last App Tested in Umbrella App (#76).
+    - Changes the behavior of mix coveralls.post so that it recognizes (#116).
+
+0.7.3
+------
+#### Changes
+* Fix EEx template warnings when using elixir 1.5 (#106).
+
+0.7.2
+------
+#### Changes
+* Fix html template is ignoring template_path from options (#105).
+
+0.7.1
+------
+#### Changes
+* Take the highest coverage count for a single line (#102).
+
 0.7.0
 ------
 #### Changes

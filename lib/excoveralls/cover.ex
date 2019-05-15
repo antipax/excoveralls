@@ -8,9 +8,10 @@ defmodule ExCoveralls.Cover do
   """
   def compile(compile_paths) do
     compile_paths = List.wrap(compile_paths)
-    :cover.stop
-    :cover.start
-    Enum.each(compile_paths, fn(compile_path) ->
+    :cover.stop()
+    :cover.start()
+
+    Enum.each(compile_paths, fn compile_path ->
       :cover.compile_beam_directory(compile_path |> to_char_list)
     end)
   end
@@ -20,27 +21,51 @@ defmodule ExCoveralls.Cover do
   """
   def module_path(module) do
     module.module_info(:compile)[:source]
-    |> List.to_string
-    |> Path.relative_to(ExCoveralls.PathReader.base_path)
+    |> List.to_string()
+    |> Path.relative_to(ExCoveralls.PathReader.base_path())
   end
 
   @doc "Wrapper for :cover.modules"
   def modules do
-    :cover.modules |> Enum.filter(&has_compile_info?/1)
+    :cover.modules() |> Enum.filter(&has_compile_info?/1)
   end
 
-  defp has_compile_info?(module) do
-    try do
-      module.module_info(:compile) != nil
-    rescue
-      _e in UndefinedFunctionError ->
-        IO.puts :stderr, "[warning] skipping the module '#{module}' because source information for the module is not available."
+  def has_compile_info?(module) do
+    case module.module_info(:compile) do
+      nil ->
         false
+
+      info ->
+        path = Keyword.get(info, :source)
+
+        if File.exists?(path) do
+          true
+        else
+          log_missing_source(module)
+          false
+        end
     end
+  rescue
+    _e in UndefinedFunctionError ->
+      log_missing_source(module)
+      false
   end
 
   @doc "Wrapper for :cover.analyse"
   def analyze(module) do
     :cover.analyse(module, :calls, :line)
+  end
+
+  if Version.compare(System.version(), "1.3.0") == :lt do
+    defp string_to_charlist(string), do: String.to_char_list(string)
+  else
+    defp string_to_charlist(string), do: String.to_charlist(string)
+  end
+
+  defp log_missing_source(module) do
+    IO.puts(
+      :stderr,
+      "[warning] skipping the module '#{module}' because source information for the module is not available."
+    )
   end
 end

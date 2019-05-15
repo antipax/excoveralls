@@ -1,15 +1,16 @@
 ExCoveralls [![Build Status](https://secure.travis-ci.org/parroty/excoveralls.svg?branch=master "Build Status")](http://travis-ci.org/parroty/excoveralls) [![Coverage Status](https://coveralls.io/repos/parroty/excoveralls/badge.svg?branch=master)](https://coveralls.io/r/parroty/excoveralls?branch=master) [![hex.pm version](https://img.shields.io/hexpm/v/excoveralls.svg)](https://hex.pm/packages/excoveralls) [![hex.pm downloads](https://img.shields.io/hexpm/dt/excoveralls.svg)](https://hex.pm/packages/excoveralls) [![Deps Status](https://beta.hexfaktor.org/badge/all/github/parroty/excoveralls.svg)](https://beta.hexfaktor.org/github/parroty/excoveralls)
 ============
 
-An elixir library that reports test coverage statistics, with the option to post to [coveralls.io](https://coveralls.io/) service.
+An Elixir library that reports test coverage statistics, with the option to post to [coveralls.io](https://coveralls.io/) service.
 It uses Erlang's [cover](http://www.erlang.org/doc/man/cover.html) to generate coverage information, and posts the test coverage results to coveralls.io through the json API.
 
-The followings are example projects.
+The following are example projects.
   - [coverage_sample](https://github.com/parroty/coverage_sample) is for Travis CI.
   - [circle_sample](https://github.com/parroty/circle_sample) is for CircleCI .
   - [semaphore_sample](https://github.com/parroty/semaphore_sample) is for Semaphore CI.
   - [excoveralls_umbrella](https://github.com/parroty/excoveralls_umbrella) is for umbrella project.
   - [gitlab_sample](https://gitlab.com/parroty/gitlab_sample) is for GitLab CI (using GitLab CI feature instead of coveralls.io).
+  - [drone_sample](https://github.com/vorce/drone_sample) is for Drone CI.
 
 # Settings
 ### mix.exs
@@ -37,22 +38,44 @@ end
 
 defp deps do
   [
-    {:excoveralls, "~> 0.6", only: :test}
+    {:excoveralls, "~> 0.10", only: :test},
   ]
 end
 ```
+
+**Note on umbrella application**: If you want to use Excoveralls within an umbrella project, every `apps` must have
+`test_coverage: [tool: ExCoveralls]` in the `mix.exs` of each app.
 
 **Note:** If you're using earlier than `elixir v1.3`, `MIX_ENV=test` or `preferred_cli_env` may be required for running mix tasks. Refer to [PR#96](https://github.com/parroty/excoveralls/pull/96) for the details.
 
 # Usage
 ## Mix Tasks
-- [mix coveralls](#mix-coveralls-show-coverage)
-- [mix coveralls.travis](#mix-coverallstravis-post-coverage-from-travis)
-- [mix coveralls.circle](#mix-coverallscircle-post-coverage-from-circle)
-- [mix coveralls.semaphore](#mix-coverallssemaphore-post-coverage-from-semaphore)
-- [mix coveralls.post](#mix-coverallspost-post-coverage-from-localhost)
-- [mix coveralls.detail](#mix-coverallsdetail-show-coverage-with-detail)
-- [mix coveralls.html](#mix-coverallshtml-show-coverage-as-html-report)
+- [ExCoveralls ![Build Status](http://travis-ci.org/parroty/excoveralls) ![Coverage Status](https://coveralls.io/r/parroty/excoveralls?branch=master) ![hex.pm version](https://hex.pm/packages/excoveralls) ![hex.pm downloads](https://hex.pm/packages/excoveralls) ![Deps Status](https://beta.hexfaktor.org/github/parroty/excoveralls)](#excoveralls-build-statushttptravis-ciorgparrotyexcoveralls-coverage-statushttpscoverallsiorparrotyexcoverallsbranchmaster-hexpm-versionhttpshexpmpackagesexcoveralls-hexpm-downloadshttpshexpmpackagesexcoveralls-deps-statushttpsbetahexfaktororggithubparrotyexcoveralls)
+- [Settings](#settings)
+    - [mix.exs](#mixexs)
+- [Usage](#usage)
+  - [Mix Tasks](#mix-tasks)
+    - [[mix coveralls] Show coverage](#mix-coveralls-show-coverage)
+    - [[mix coveralls.travis] Post coverage from travis](#mix-coverallstravis-post-coverage-from-travis)
+      - [.travis.yml](#travisyml)
+    - [[mix coveralls.circle] Post coverage from circle](#mix-coverallscircle-post-coverage-from-circle)
+      - [circle.yml](#circleyml)
+    - [[mix coveralls.semaphore] Post coverage from semaphore](#mix-coverallssemaphore-post-coverage-from-semaphore)
+      - [semaphore build instructions](#semaphore-build-instructions)
+    - [[mix coveralls.drone] Post coverage from drone](#mix-coverallsdrone-post-coverage-from-drone)
+      - [.drone.yml](#droneyml)
+    - [[mix coveralls.post] Post coverage from any host](#mix-coverallspost-post-coverage-from-any-host)
+    - [[mix coveralls.detail] Show coverage with detail](#mix-coverallsdetail-show-coverage-with-detail)
+    - [[mix coveralls.html] Show coverage as HTML report](#mix-coverallshtml-show-coverage-as-html-report)
+    - [[mix coveralls.json] Show coverage as JSON report](#mix-coverallsjson-show-coverage-as-json-report)
+  - [coveralls.json](#coverallsjson)
+      - [Stop Words](#stop-words)
+      - [Exclude Files](#exclude-files)
+      - [Terminal Report Output](#terminal-report-output)
+      - [Coverage Options](#coverage-options)
+  - [Ignore Lines](#ignore-lines)
+  - [Notes](#notes)
+  - [Todo](#todo)
 
 ### [mix coveralls] Show coverage
 Run the `MIX_ENV=test mix coveralls` command to show coverage information on localhost.
@@ -86,6 +109,7 @@ Usage: mix coveralls <Options>
 
     Common options across coveralls mix tasks
 
+    -o (--output-dir)   Write coverage information to output dir.
     -u (--umbrella)     Show overall coverage for umbrella project.
     -v (--verbose)      Show json string for posting.
 
@@ -161,6 +185,23 @@ mix coveralls.semaphore
 Ensure your coveralls.io repo token is available via the `COVERALLS_REPO_TOKEN` environment
 variable.
 
+### [mix coveralls.drone] Post coverage from drone
+Specify `mix coveralls.drone` in the `.drone.yml`.
+This task is for submitting the result to the coveralls server when the Drone build is executed.
+
+You will also need to add your coveralls repo token as a secret to the drone project:
+`drone secret add --repository=your-namespace/your-project --name=coveralls_repo_token --value=xyz`
+
+#### .drone.yml
+
+```yml
+pipeline:
+  build:
+    secrets: [ coveralls_repo_token ]
+    commands:
+      - mix coveralls.drone
+```
+
 ### [mix coveralls.post] Post coverage from any host
 Acquire the repository token of coveralls.io in advance, and run the `mix coveralls.post` command.
 It is for submitting the result to coveralls server from any host.
@@ -233,17 +274,27 @@ Output reports are written to `cover/excoveralls.html` by default, however, the 
 Custom reports can be created and utilized by defining `template_path` in `coveralls.json`. This directory should
 contain an eex template named `coverage.html.eex`.
 
-## coveralls.json
-`coveralls.json` provides a setting for excoveralls.
+### [mix coveralls.json] Show coverage as JSON report
+This task displays coverage information at the source-code level formatted as a JSON document.
+The report follows a format supported by several code coverage services, including Codecov and Code Climate.
+Output to the shell is the same as running the command `mix coveralls`. In a similar manner to `mix coveralls.detail`, reported source code can be filtered by specifying arguments using the `--filter` flag.
 
-The default `coveralls.json` file is stored in `deps/excoveralls/lib/conf`, and custom `coveralls.json` files can be placed in the mix project root. The custom definition is prioritized over the default one (if definitions in custom file are not found, then the definitions in the default file are used).
+Upload a coverage report to Codecov using their [bash uploader](https://docs.codecov.io/docs/about-the-codecov-bash-uploader)
+or to Code Climate using their [test-reporter](https://docs.codeclimate.com/docs/configuring-test-coverage).
+
+Output reports are written to `cover/excoveralls.json` by default, however, the path can be specified by overwriting the `"output_dir"` coverage option.
+
+## coveralls.json
+`coveralls.json` provides settings for excoveralls.
+
+The default `coveralls.json` file is stored in `deps/excoveralls/lib/conf`, and custom `coveralls.json` files can be placed in the mix project root. The custom definition is prioritized over the default one (if definitions in the custom file are not found, then the definitions in the default file are used).
 
 #### Stop Words
-Stop words defined in `coveralls.json` will be excluded from the coverage calculation. Some kernal macros defined in Elixir are not considered "covered" by Erlang's cover library. It can be used for excluding these macros, or for any other reasons. The words are parsed as regular expression.
+Stop words defined in `coveralls.json` will be excluded from the coverage calculation. Some kernel macros defined in Elixir are not considered "covered" by Erlang's cover library. It can be used for excluding these macros, or for any other reasons. The words are parsed as regular expression.
 
 #### Exclude Files
 
-If you want to exclude files from the coverage calculation add the `skip_files` key in the `coveralls.json` file. `skip_files` takes an array of file paths, for example:
+If you want to exclude/ignore files from the coverage calculation add the `skip_files` key in the `coveralls.json` file. `skip_files` takes an array of file paths, for example:
 
 ```javascript
 {
@@ -299,6 +350,22 @@ If you want to change the column width used for file names add the `file_column_
 }
 ```
 
+### Ignore Lines
+
+Use comments `coveralls-ignore-start` and `coveralls-ignore-stop` to ignore certain lines from code coverage calculation.
+
+```elixir
+defmodule MyModule do
+  def covered do
+  end
+  
+  # coveralls-ignore-start
+  def ignored do
+  end
+  # coveralls-ignore-stop
+end
+```
+
 ### Notes
 - If mock library is used, it will show some warnings during execution.
     - https://github.com/eproxus/meck/pull/17
@@ -309,4 +376,3 @@ If you want to change the column width used for file names add the `file_column_
 ### Todo
 - It might not work well on projects which handle multiple project (Mix.Project) files.
     - Needs improvement on file-path handling.
-

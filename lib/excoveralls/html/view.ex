@@ -23,7 +23,9 @@ defmodule ExCoveralls.Html.View do
 
   @template "coverage.html.eex"
 
-  EEx.function_from_file(:def, :render, PathHelper.template_path(@template), [:assigns])
+  def render(assigns \\ []) do
+    EEx.eval_file(PathHelper.template_path(@template), assigns: assigns)
+  end
 
   def partial(template, assigns \\ []) do
     EEx.eval_file(PathHelper.template_path(template), assigns: assigns)
@@ -33,7 +35,9 @@ defmodule ExCoveralls.Html.View do
     Safe.html_escape(data)
   end
 
-  def coverage_class(percent) do
+  def coverage_class(percent, sloc \\ nil)
+  def coverage_class(_percent, 0), do: "none"
+  def coverage_class(percent, _) do
     cond do
       percent >= 75 -> "high"
       percent >= 50 -> "medium"

@@ -22,7 +22,7 @@ defmodule ExCoveralls.Stats do
   end
 
   @doc """
-  Report the statistical information for he specified module.
+  Report the statistical information for the specified module.
   """
   def report(modules) do
     calculate_stats(modules)
@@ -30,6 +30,7 @@ defmodule ExCoveralls.Stats do
     |> generate_source_info
     |> skip_files
     |> ExCoveralls.StopWords.filter
+    |> ExCoveralls.Ignore.filter
   end
 
   @doc """
@@ -52,7 +53,7 @@ defmodule ExCoveralls.Stats do
   defp add_counts(module_hash, module, line, count) do
     path = Cover.module_path(module)
     count_hash = Map.get(module_hash, path, Map.new)
-    Map.put(module_hash, path, Map.put(count_hash, line, count))
+    Map.put(module_hash, path, Map.put(count_hash, line, max(Map.get(count_hash, line, 0), count)))
   end
 
   @doc """
@@ -78,11 +79,11 @@ defmodule ExCoveralls.Stats do
   """
   def generate_source_info(coverage) do
     Enum.map(coverage, fn({file_path, stats}) ->
-      [
+      %{
         name: file_path,
         source: read_source(file_path),
         coverage: stats
-      ]
+      }
     end)
   end
 
@@ -90,8 +91,8 @@ defmodule ExCoveralls.Stats do
   Append the name of the sub app to the source info stats.
   """
   def append_sub_app_name(stats, sub_app_name, apps_path) do
-    Enum.map(stats, fn([{:name, name}, {:source, source}, {:coverage, coverage}]) ->
-      [{:name, "#{apps_path}/#{sub_app_name}/#{name}"}, {:source, source}, {:coverage, coverage}]
+    Enum.map(stats, fn %{name: name} = stat ->
+      %{stat | name: "#{apps_path}/#{sub_app_name}/#{name}"}
     end)
   end
 
@@ -103,7 +104,7 @@ defmodule ExCoveralls.Stats do
   end
 
   defp count_lines(string) do
-    1 + Enum.count(String.to_char_list(string), fn(x) -> x == ?\n end)
+    1 + (Regex.scan(~r/\n/i, string) |> length)
   end
 
   @doc """
@@ -220,4 +221,9 @@ defmodule ExCoveralls.Stats do
     end
   end
 
+  if Version.compare(System.version, "1.3.0") == :lt do
+    defp string_to_charlist(string), do: String.to_char_list(string)
+  else
+    defp string_to_charlist(string), do: String.to_charlist(string)
+  end
 end
